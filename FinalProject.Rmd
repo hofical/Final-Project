@@ -40,19 +40,44 @@ fastfood_calories <- fastfood_calories %>%
   mutate(protein_perc = protein/50)%>%
   mutate(vit_a_perc = vit_a/100)%>%
 mutate(vit_c_perc = vit_c/100)%>%
-mutate(calcium_perc = calcium/100)
+mutate(calcium_perc = calcium/100)%>%
+  mutate(calories_perc = calories/2000)
 ```
 
 ## Creating percentage table
 ```{r, include = TRUE, message = FALSE }
 fast_food_percent <- fastfood_calories %>%
-    select(1:4, 15:29)
-
+    select(1:4, 18:30)
 ```
-You can also embed plots, for example:
+###Creating information about the most unhealthy foodstuffs
 
+It would be good to see which are the articles in the list that have a value of more than 1 (to see which article will cover more than what you need for one day and thus is probably best avoided)
 ```{r pressure, echo=FALSE}
-plot(pressure)
+avoid_food <- fast_food_percent %>%
+     select(2:3,5:17)
+avoid_food %>%
+     filter_at(.vars= 3:15, .vars_predicate = any_vars(. > 1))
+```
+Also a plot to see which are the items that have very high salt and/or fat in them and which restaurant produces them. It seems that some of the items are very high in salt and even though you can find some items that will cover one's fat requirements for a day there is no item that exceeds the 100% limit by too much.
+We can also see that there are quite a few items that are dangerously high in both fat and salt. It would be nice to know more about them.
+
+On the other hand there are some that have very low fat and salt.
+It would be nice to see whether these are in fact healthy picks in a restaurant.
+Which nutrients do these food consist of? 
+
+```{r, include = TRUE, message = FALSE }
+ggplot(fast_food_percent, aes(x = total_fat_perc, y  = sodium_perc, color = restaurant)) + geom_point() + scale_x_continuous(name = "Total Fat %", limits = c(0,1.1), labels = percent) + scale_y_continuous(name = "Salt %", limits = c(0,2), labels = percent) + ggtitle("Fat and salt in fast food articles expressed by percentage of RDI")                                                                                                                                                          
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+To explore the low end of this scale, we need a (somewhat arbitrary) cut-off point in the data. For this analysis I will use 15 and 25% percent points which seems like a good limit as the values are extremely small but there are still a fair amount of points inside. The points need to be lower in both axis to qualify.
+For the high end the points are less arbitrary. I'm interested in the items that reach 100% in at least one of the categories, so it will be enough for a point to be larger than 100% on one of the scales.
+```{r, include = TRUE, message = FALSE }
+low_fat_sugar <- fast_food_percent %>%
+  filter(sodium_perc <= 0.25, total_fat_perc <= 0.15)
+ high_fat_sugar <- fast_food_percent %>%
+     filter(sodium_perc >= 1 | total_fat_perc >= 1)
+```
+
+
+```
