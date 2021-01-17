@@ -45,6 +45,7 @@ mutate(calcium_perc = calcium/100)%>%
 ```
 
 ## Creating percentage table
+This table shows the nutrients of the items as a percentage of RDI.
 ```{r, include = TRUE, message = FALSE }
 fast_food_percent <- fastfood_calories %>%
     select(1:4, 18:30)
@@ -70,13 +71,9 @@ avoid_food %>%
      filter_at(.vars= 3:15, .vars_predicate = any_vars(. > 1)) %>%
      select(1:2)
 ```
-It would also be good to know what are the items that have high and low salt and fat (the two most common ingredients, fast food chaines are criticized for). A plot is made to visulize the items that have very high salt and/or fat in them and which restaurant produces them and also a table is made to see which are the exact products that are most dangerous.
-It seems that some of the items are very high in salt and even though you can find some items that will cover one's fat requirements for a day there is no item that exceeds the 100% limit by too much.
-We can also see that there are quite a few items that are dangerously high in both fat and salt. It would be nice to know more about them.
+It would also be good to know what are the items that have high and low salt and fat (the two most common ingredients, fast food chaines are criticized for). A plot is made to visualize the items that have very high salt and/or fat in them and which restaurant produces them and also a table is made to see which are the exact products that are most dangerous.
 
-On the other hand there are some that have very low fat and salt.
-It would be good to see whether these are in fact healthy picks in a restaurant.
-Which nutrients do these food consist of? 
+
 
 ```{r, include = TRUE, message = FALSE }
 ggplot(fast_food_percent, aes(x = total_fat_perc, y  = sodium_perc, color = restaurant)) + geom_point() + scale_x_continuous(name = "Total Fat %", limits = c(0,1.1), labels = percent) + scale_y_continuous(name = "Salt %", limits = c(0,2), labels = percent) + ggtitle("Fat and salt in fast food articles expressed by percentage of RDI")      
@@ -94,7 +91,12 @@ low_fat_salt <- fast_food_percent %>%
  print(high_fat_salt)
  
 ```
+It seems that some of the items are very high in salt and even though you can find some items that will cover one's fat requirements for a day there is no item that exceeds the 100% limit by too much.
+We can also see that there are quite a few items that are dangerously high in both fat and salt. It would be nice to know more about them.
 
+On the other hand there are some that have very low fat and salt.
+It would be good to see whether these are in fact healthy picks in a restaurant.
+Which nutrients do these food consist of? 
 
 To explore the low end of this scale, we need a (somewhat arbitrary) cut-off point in the data. For this analysis I will use 15 and 25% percent points which seems like a good limit as the values are quite small but there are still a fair amount of points inside. The points need to be lower in both axis to qualify.
 For the high end the points the limits are less arbitrary. I'm interested in the items that reach 100% in at least one of the categories, so it will be enough for a point to be larger than 100% on one of the scales.
@@ -130,9 +132,9 @@ low_all_food <- fast_food_percent %>%
   filter(recommended == 1) %>%
   arrange(desc(calories))
 
-ggplot(low_all_food, aes(x = restaurant)) + geom_bar()
+ggplot(low_all_food, aes(x = restaurant)) + geom_bar() +ggtitle("Number of low sugar, fat and salt items by restaurant ")
 
-ggplot(low_all_food, aes(x = calories, y = vitamins, color = restaurant)) + geom_point() + geom_text(aes(label= ifelse(calories>=200 & vitamins >= 0.15, item, "")))
+ggplot(low_all_food, aes(x = calories, y = vitamins, color = restaurant)) + geom_point() + geom_text(aes(label= ifelse(calories>=200 & vitamins >= 0.15, item, ""))) + ggtitle("Low salt and fat food displayed by calorie and vitamin", subtitle = "Displayed names are for food over 200 calories and over 15% in vitamins C,A and Calcium")
 
 low_all_food %>%
        filter(calories >= 200) %>%
@@ -143,3 +145,24 @@ low_all_food %>%
 
 Subway and Taco Bell has most of this kind of food but the one that will cover most of your vitamin needs for not too many claories comes from McDonalds.
 A list of all recommended food containing at least 200 calories to lower hunger but containing low salt, sugar and fat is also provided (as the scatterplot missed many data-points due to NAs on vitamins.)
+
+## Testing
+Note: I found it hard to come up with a test that is interesting in any ways as all the variables relate to the ingredients of the food. For instance a variable containing ratings of the items would have been very useful. 
+
+What are the ingredients that increase calories the most?
+
+There is one very influential outlier in the datasaet, Sonic's ultimate chicken club (article 128) 
+Smokehouse Beef Short Rib Sandwich (172) and Burger King's Bacon King (197) are not outliers but they stand out from the otherwise good distribution.
+
+
+```{r}
+first_model<- lm(calories~total_fat + sodium + total_carb + fiber + sugar + protein, data = fastfood_calories)
+first_model %>%
+    augment() %>%
+    arrange(desc(.cooksd)) %>%
+    top_n(15)
+plot(first_model, 1)
+plot(first_model, 2)
+plot(first_model, 3)
+```
+
