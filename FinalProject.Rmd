@@ -103,7 +103,7 @@ For the high end the points the limits are less arbitrary. I'm interested in the
 The rest of the distribution is the Normal category.
 
 It is clear that Low category food contains much less calorie than High Category food but the scatterplot also makes it clear that most of the Low salt and fat food are also low in vitamins and fiber while the high category food are higher in both of those. 
-There are exceptions though, some red dots are quite low on both axis while some green go above avarage.
+There are exceptions though, some red dots are quite low on both axis while some green go above average.
 Again, portion size is missing which might be an explanation for this phenomenon.
 
 
@@ -119,8 +119,11 @@ fast_food_percent %>%
 fast_food_percent <- fast_food_percent %>%
      mutate(vitamins = (vit_a_perc + vit_c_perc + calcium_perc)/3)
 
-ggplot(fast_food_percent, aes(x = vitamins, y = fiber_perc, color = healthy)) + geom_point() + geom_jitter(height = 0.1, width  = 0.1) + scale_color_viridis_d()
+ggplot(fast_food_percent, aes(x = vitamins, y = fiber_perc, color = healthy)) + geom_point() + geom_jitter(height = 0.1, width  = 0.1) + scale_color_viridis_d() + ggtitle("Distribution of High and Low category food by fiber and vitamin contained ")
 
+ggplot(fast_food_percent, aes(x = restaurant)) + geom_bar(aes(fill=healthy)) + ggtitle("Count of items by restaurant and colored by the ratio of their quality of food") + scale_fill_viridis_d()
+
+ 
 ```
 ## Searching for healthy food
 Unhealthy food is already listed, now it is time to search for healthy food that have high vitamins and high fibre but low fat and low sodium. Also it is time to add sugar to the unhealthy spectrum and see what are the items that are low on that as well.
@@ -152,7 +155,8 @@ Note: I found it hard to come up with a test that is interesting in any ways as 
 What are the ingredients that increase calories the most?
 
 There is one very influential outlier in the datasaet, Sonic's ultimate chicken club (article 128) 
-Smokehouse Beef Short Rib Sandwich (172) and Burger King's Bacon King (197) are not outliers but they stand out from the otherwise good distribution.
+Smokehouse Beef Short Rib Sandwich (172) and Burger King's Bacon King (197) are not outliers based on Cook's distance but they stand out from the otherwise good distribution. 
+After checking these datapoints it seems that there is no mechanical reason to exclude these points from the analysis. Their values do not seem to be typos, out of range or sampling errors so I will not remove them from the dataset.
 
 
 ```{r}
