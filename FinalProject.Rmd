@@ -210,4 +210,30 @@ summary(second_model)
 The first model has an R2 of 97% which is very high. The result is not surprising at all. Calories depend very much on the nutrients of the food. 
 A second model is considered where only the significant predictors are kept. The R2 doesn't change indicating that the other factors do not play a significant role in the calories of fast food.
 
+##Duel of McDonald's and Burger King
 
+Two of the most famous chains are Burger King and McDonald's. I would like to check if there is a difference in the calorie of their items.
+To compare the categories will first be converted to a numeric value (1 for McDonald's and 2 for Burger King).
+
+```{r message = FALSE}
+Mc_table <- fastfood_calories %>%
+    filter(restaurant == "Mcdonalds")
+ BK_table <-  fastfood_calories %>%
+         filter(restaurant == "Burger King")
+ duel_table <- full_join(Mc_table, BK_table)
+ 
+  duel_table <- duel_table%>% 
+     mutate(restaurant = str_replace_all(restaurant, "Mcdonalds", "1"))
+ duel_table <- duel_table%>% 
+         mutate(restaurant = str_replace_all(restaurant, "Burger King", "2"))
+  duel_table <- duel_table%>% 
+        mutate(restaurant = as.factor(restaurant))
+  
+  duel_model <- lm(calories~restaurant, data = duel_table)
+  summary(duel_model)
+  
+  ggplot(duel_table, aes(x = restaurant, y = calories, color = restaurant)) + geom_boxplot( show.legend = FALSE) + ggtitle("Avarage calories for McDonalds and Burger King") + scale_x_discrete(name = c("Restaurant") ,  labels=c("McDonalds","Burger King"))
+               
+```
+
+According to the plot and to the regression there is no difference between the two restaurants' items with regards to calorie.
