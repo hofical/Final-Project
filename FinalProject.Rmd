@@ -211,4 +211,3 @@ The first model has an R2 of 97% which is very high. The result is not surprisin
 A second model is considered where only the significant predictors are kept. The R2 doesn't change indicating that the other factors do not play a significant role in the calories of fast food.
 
 
-
