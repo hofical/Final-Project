@@ -150,13 +150,39 @@ Subway and Taco Bell has most of this kind of food but the one that will cover m
 A list of all recommended food containing at least 200 calories to lower hunger but containing low salt, sugar and fat is also provided (as the scatterplot missed many data-points due to NAs on vitamins.)
 
 ## Testing
-Note: I found it hard to come up with a test that is interesting in any ways as all the variables relate to the ingredients of the food. For instance a variable containing ratings of the items would have been very useful. 
+Note: I found it hard to come up with a test that is interesting in any way as all the variables relate to the ingredients of the food (a mistake in choice of data in my part). For instance a variable containing ratings of the items would have been very useful. 
 
 What are the ingredients that increase calories the most?
 
+First it is time to replace NAs in the fiber and protein variable with the mean.
+```{r}
+just_fiber <- fastfood_calories%>%
+         select(12)
+just_fiber <- just_fiber %>%
+     drop_na()
+just_fiber%>%
+    summarise(mean_fiber = mean(fiber))
+
+just_protein <- fastfood_calories%>%
+         select(14)
+just_protein <- just_protein%>%
+     drop_na()
+just_protein%>%
+    summarise(mean_protein = mean(protein))
+ fastfood_calories <- fastfood_calories%>%
+     mutate(fiber = replace_na(fiber,4.1))
+ 
+ fastfood_calories <- fastfood_calories%>%
+     mutate(protein = replace_na(protein,27.9))
+
+```
+
+
+
+The prerequisits for linear regression seem to be met.
 There is one very influential outlier in the datasaet, Sonic's ultimate chicken club (article 128) 
 Smokehouse Beef Short Rib Sandwich (172) and Burger King's Bacon King (197) are not outliers based on Cook's distance but they stand out from the otherwise good distribution. 
-After checking these datapoints it seems that there is no mechanical reason to exclude these points from the analysis. Their values do not seem to be typos, out of range or sampling errors so I will not remove them from the dataset.
+After checking these datapoints it seems that there is no mechanical reason to exclude these points from the analysis. Their values do not seem to be typos, out of range or sampling errors so I will not remove them from the dataset but will try a second analysis which might yield a better result for predicting calories.
 
 
 ```{r}
@@ -168,5 +194,17 @@ first_model %>%
 plot(first_model, 1)
 plot(first_model, 2)
 plot(first_model, 3)
-```
 
+input_table <- fastfood_calories%>%
+          select(6,10:14)
+cor(input_table)
+vif(fist_model)
+```
+```{r}
+summary(first_model)
+
+second_model <- lm(calories ~ total_carb + total_fat + protein, data = fastfood_calories)
+summary(second_model)
+```
+The first model has an R2 of 97% which is very high. The result is not surprising at all. Calories depend very much on the nutrients of the food. Sugar plays a comparatively small role in determining calories which must be because of the small amount of deserts present in this dataset. 
+A second model is considered where only the significant predictors are kept. 
