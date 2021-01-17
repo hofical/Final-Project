@@ -151,6 +151,8 @@ Subway and Taco Bell has most of this kind of food but the one that will cover m
 A list of all recommended food containing at least 200 calories to lower hunger but containing low salt, sugar and fat is also provided (as the scatterplot missed many data-points due to NAs on vitamins.)
 
 ## Testing
+Note: I found it hard to come up with a test that is interesting in any ways as all the variables relate to the ingredients of the food. For instance a variable containing ratings of the items would have been very useful. 
+
 
 What are the ingredients that increase calories the most?
 
