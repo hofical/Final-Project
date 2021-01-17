@@ -117,14 +117,29 @@ fast_food_percent %>%
 fast_food_percent <- fast_food_percent %>%
      mutate(vitamins = (vit_a_perc + vit_c_perc + calcium_perc)/3)
 
-ggplot(fast_food_percent, aes(x = vitamins, y = fiber_perc, color = healthy)) + geom_point() + geom_jitter(height = 0.1, width  = 0.1)
+ggplot(fast_food_percent, aes(x = vitamins, y = fiber_perc, color = healthy)) + geom_point() + geom_jitter(height = 0.1, width  = 0.1) + scale_color_viridis_d()
 
 ```
 ## Searching for healthy food
-
+Unhealthy food is already listed, now it is time to search for healthy food that have high vitamins and high fibre but low fat and low sodium. Also it is time to add sugar to the unhealthy spectrum and see what are the items that are low on that as well.
 
 ```{r}
+fast_food_percent <- fast_food_percent %>%
+     mutate(recommended = ifelse(healthy == "Low" & sodium_perc <= 0.25 & total_fat_perc <= 0.15 & sugar_perc <= 0.25, 1,0))
+low_all_food <- fast_food_percent %>%
+  filter(recommended == 1) %>%
+  arrange(desc(calories))
+
+ggplot(low_all_food, aes(x = restaurant)) + geom_bar()
+
+ggplot(low_all_food, aes(x = calories, y = vitamins, color = restaurant)) + geom_point() + geom_text(aes(label= ifelse(calories>=200 & vitamins >= 0.15, item, "")))
+
+low_all_food %>%
+       filter(calories >= 200) %>%
+     arrange(desc(calories))%>%
+     select(2:3)
 
 ```
 
-
+Subway and Taco Bell has most of this kind of food but the one that will cover most of your vitamin needs for not too many claories comes from McDonalds.
+A list of all recommended food containing at least 200 calories to lower hunger but containing low salt, sugar and fat is also provided (as the scatterplot missed many data-points due to NAs on vitamins.)
