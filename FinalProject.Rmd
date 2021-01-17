@@ -23,7 +23,7 @@ IDE ÍRNI KELL még!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!.
 The data seems to be in a fine format. The "salad" column does not seem to provide any information so it is better to drop it. Another notable shortcoming of the dataset is that it does not include the weight of the meals which would allow us for a better analysis. Keeping that in mind the main question is: if you are hungry and you really want to go to a fast food restaurant, which one should you choose based on its overall nutrient values?
 To allow a better understanding it is better to change the raw values into percentage values. We use the FDA recommendations for a 2000 calorie diet to do that. (https://www.fda.gov/media/135301/download) It is clear from the source of original dataset (https://fastfoodnutrition.org/mcdonalds/artisan-grilled-chicken-sandwich) that it uses the same measurements (g,mg, etc.) as the FDA recommendations. Vitamins only have to be converted by decimals as they were in percent measurement from the start. 
 
-```{r, include = TRUE, message = FALSE }
+```{r, message = FALSE, include= TRUE }
 
 fastfood_calories <- read_csv("~/R/Tryagain/data/fastfood_calories.csv")
 str(fastfood_calories)
@@ -49,6 +49,17 @@ mutate(calcium_perc = calcium/100)%>%
 fast_food_percent <- fastfood_calories %>%
     select(1:4, 18:30)
 ```
+## Which places to go?
+Which restaurant offers food with the least overall calories?
+
+```{r}
+fast_food_percent %>%
+      group_by(restaurant)%>%
+     summarize(mean_calories = mean(calories))%>%
+     arrange(mean_calories)
+
+```
+
 ###Creating information about the most unhealthy foodstuffs
 
 It would be good to see which are the articles in the list that have a value of more than 1 (to see which article will cover more than what you need for one day and thus is probably best avoided)
@@ -56,28 +67,64 @@ It would be good to see which are the articles in the list that have a value of 
 avoid_food <- fast_food_percent %>%
      select(2:3,5:17)
 avoid_food %>%
-     filter_at(.vars= 3:15, .vars_predicate = any_vars(. > 1))
+     filter_at(.vars= 3:15, .vars_predicate = any_vars(. > 1)) %>%
+     select(1:2)
 ```
-Also a plot to see which are the items that have very high salt and/or fat in them and which restaurant produces them. It seems that some of the items are very high in salt and even though you can find some items that will cover one's fat requirements for a day there is no item that exceeds the 100% limit by too much.
+It would also be good to know what are the items that have high and low salt and fat (the two most common ingredients, fast food chaines are criticized for). A plot is made to visulize the items that have very high salt and/or fat in them and which restaurant produces them and also a table is made to see which are the exact products that are most dangerous.
+It seems that some of the items are very high in salt and even though you can find some items that will cover one's fat requirements for a day there is no item that exceeds the 100% limit by too much.
 We can also see that there are quite a few items that are dangerously high in both fat and salt. It would be nice to know more about them.
 
 On the other hand there are some that have very low fat and salt.
-It would be nice to see whether these are in fact healthy picks in a restaurant.
+It would be good to see whether these are in fact healthy picks in a restaurant.
 Which nutrients do these food consist of? 
 
 ```{r, include = TRUE, message = FALSE }
-ggplot(fast_food_percent, aes(x = total_fat_perc, y  = sodium_perc, color = restaurant)) + geom_point() + scale_x_continuous(name = "Total Fat %", limits = c(0,1.1), labels = percent) + scale_y_continuous(name = "Salt %", limits = c(0,2), labels = percent) + ggtitle("Fat and salt in fast food articles expressed by percentage of RDI")                                                                                                                                                          
-```
+ggplot(fast_food_percent, aes(x = total_fat_perc, y  = sodium_perc, color = restaurant)) + geom_point() + scale_x_continuous(name = "Total Fat %", limits = c(0,1.1), labels = percent) + scale_y_continuous(name = "Salt %", limits = c(0,2), labels = percent) + ggtitle("Fat and salt in fast food articles expressed by percentage of RDI")      
 
 
-To explore the low end of this scale, we need a (somewhat arbitrary) cut-off point in the data. For this analysis I will use 15 and 25% percent points which seems like a good limit as the values are extremely small but there are still a fair amount of points inside. The points need to be lower in both axis to qualify.
-For the high end the points are less arbitrary. I'm interested in the items that reach 100% in at least one of the categories, so it will be enough for a point to be larger than 100% on one of the scales.
-```{r, include = TRUE, message = FALSE }
-low_fat_sugar <- fast_food_percent %>%
+low_fat_salt <- fast_food_percent %>%
   filter(sodium_perc <= 0.25, total_fat_perc <= 0.15)
- high_fat_sugar <- fast_food_percent %>%
+
+ high_fat_salt <- fast_food_percent %>%
      filter(sodium_perc >= 1 | total_fat_perc >= 1)
+ low_fat_salt <- low_fat_salt %>%
+          mutate(healthy = ifelse(.>1, 1,0))
+ high_fat_salt <- high_fat_salt  %>%
+          mutate(healthy = ifelse(.>1, 2,0))
+ print(high_fat_salt)
+ 
 ```
 
 
+To explore the low end of this scale, we need a (somewhat arbitrary) cut-off point in the data. For this analysis I will use 15 and 25% percent points which seems like a good limit as the values are quite small but there are still a fair amount of points inside. The points need to be lower in both axis to qualify.
+For the high end the points the limits are less arbitrary. I'm interested in the items that reach 100% in at least one of the categories, so it will be enough for a point to be larger than 100% on one of the scales.
+The rest of the distribution is the Normal category.
+
+It is clear that Low category food contains much less calorie than High Category food but the scatterplot also makes it clear that most of the Low salt and fat food are also low in vitamins and fiber while the high category food are higher in both of those. 
+There are exceptions though, some red dots are quite low on both axis while some green go above avarage.
+Again, portion size is missing which might be an explanation for this phenomenon.
+
+
+
+```{r, include = TRUE, message = FALSE }
+fast_food_percent <- fast_food_percent %>%
+     mutate(healthy = if_else(total_fat_perc >=1 | sodium_perc >=1, "High", if_else(total_fat_perc <= 0.15 & sodium_perc <= 0.25, "Low", "Normal")))
+
+fast_food_percent %>%
+     group_by(healthy)%>%
+    summarise(mean_calories = mean(calories)) %>%
+        arrange(desc(mean_calories))
+fast_food_percent <- fast_food_percent %>%
+     mutate(vitamins = (vit_a_perc + vit_c_perc + calcium_perc)/3)
+
+ggplot(fast_food_percent, aes(x = vitamins, y = fiber_perc, color = healthy)) + geom_point() + geom_jitter(height = 0.1, width  = 0.1)
+
 ```
+## Searching for healthy food
+
+
+```{r}
+
+```
+
+
