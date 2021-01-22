@@ -218,7 +218,7 @@ A second model is considered where only the significant predictors are kept. The
 ## Duel of McDonald's and Burger King
 
 Two of the most famous chains are Burger King and McDonald's. I would like to check if there is a difference in the calorie of their items.
-To compare the categories will first be converted to a numeric value (1 for McDonald's and 2 for Burger King).
+To compare the categories will first be converted to a numeric value (1 for McDonald's and 2 for Burger King) and then we can run the test and visualize the data in a boxplot.
 
 ```{r message = FALSE, echo = FALSE}
 Mc_table <- fastfood_calories %>%
