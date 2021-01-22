@@ -15,6 +15,7 @@ library(scales)
 library(readr)
 library(stringr)
 library(car)
+ fastfood_calories <- read_csv("fastfood_calories.csv")
 ```
 
 # Analyzing Fast-food nutrients
@@ -24,7 +25,7 @@ To allow a better understanding it is better to change the raw values into perce
 
 ```{r, message = FALSE, include = FALSE}
 
-  fastfood_calories <- read_csv("fastfood_calories.csv")
+
 str(fastfood_calories)
 fastfood_calories <- fastfood_calories %>%
   select(1:17) %>%
@@ -50,6 +51,7 @@ fast_food_percent <- fastfood_calories %>%
     select(1:4, 18:30)
 ```
 ## Which places to go?
+
 Which restaurant offers food with the least overall calories?
 
 ```{r}
@@ -60,7 +62,7 @@ fast_food_percent %>%
 
 ```
 
-###Creating information about the most unhealthy foodstuffs
+### Creating information about the most unhealthy foodstuffs
 
 It would be good to see which are the articles in the list that have a value of more than 1 (to see which article will cover more than what you need for one day and thus is probably best avoided)
 ```{r pressure, echo=FALSE}
@@ -74,7 +76,7 @@ It would also be good to know what are the items that have high and low salt and
 
 
 
-```{r, include = TRUE, message = FALSE }
+```{r, include = TRUE, message = FALSE, echo = FALSE }
 ggplot(fast_food_percent, aes(x = total_fat_perc, y  = sodium_perc, color = restaurant)) + geom_point() + scale_x_continuous(name = "Total Fat %", limits = c(0,1.1), labels = percent) + scale_y_continuous(name = "Salt %", limits = c(0,2), labels = percent) + ggtitle("Fat and salt in fast food articles expressed by percentage of RDI")      
 
 
@@ -104,7 +106,7 @@ The rest of the distribution is the Normal category.
 
 
 
-```{r, include = TRUE, message = FALSE }
+```{r, include = TRUE, message = FALSE, echo = FALSE}
 fast_food_percent <- fast_food_percent %>%
      mutate(healthy = if_else(total_fat_perc >=1 | sodium_perc >=1, "High", if_else(total_fat_perc <= 0.15 & sodium_perc <= 0.25, "Low", "Normal")))
 
@@ -131,7 +133,7 @@ Again, portion size is missing which might be an explanation for this phenomenon
 ## Searching for healthy food
 Unhealthy food is already listed, now it is time to search for healthy food that have high vitamins and high fibre but low fat and low sodium. Also it is time to add sugar to the unhealthy spectrum and see what are the items that are low on that as well.
 
-```{r}
+```{r, echo = FALSE}
 fast_food_percent <- fast_food_percent %>%
      mutate(recommended = ifelse(healthy == "Low" & sodium_perc <= 0.25 & total_fat_perc <= 0.15 & sugar_perc <= 0.25, 1,0))
 low_all_food <- fast_food_percent %>%
@@ -159,7 +161,7 @@ Note: I found it hard to come up with a test that is interesting in any ways as 
 What are the ingredients that increase calories the most?
 
 First it is time to replace NAs in the fiber and protein variable with the mean.
-```{r}
+```{r, echo = FALSE}
 just_fiber <- fastfood_calories%>%
          select(12)
 just_fiber <- just_fiber %>%
@@ -189,7 +191,7 @@ Smokehouse Beef Short Rib Sandwich (172) and Burger King's Bacon King (197) are 
 After checking these datapoints it seems that there is no mechanical reason to exclude these points from the analysis. Their values do not seem to be typos, out of range or sampling errors so I will not remove them from the dataset but will try a second analysis which might yield a better result for predicting calories.
 
 
-```{r}
+```{r echo = FALSE}
 first_model<- lm(calories~total_fat + sodium + total_carb + fiber + sugar + protein, data = fastfood_calories)
 first_model %>%
     augment() %>%
@@ -213,12 +215,12 @@ summary(second_model)
 The first model has an R2 of 97% which is very high. The result is not surprising at all. Calories depend very much on the nutrients of the food. 
 A second model is considered where only the significant predictors are kept. The R2 doesn't change indicating that the other factors do not play a significant role in the calories of fast food.
 
-##Duel of McDonald's and Burger King
+## Duel of McDonald's and Burger King
 
 Two of the most famous chains are Burger King and McDonald's. I would like to check if there is a difference in the calorie of their items.
 To compare the categories will first be converted to a numeric value (1 for McDonald's and 2 for Burger King).
 
-```{r message = FALSE}
+```{r message = FALSE, echo = FALSE}
 Mc_table <- fastfood_calories %>%
     filter(restaurant == "Mcdonalds")
  BK_table <-  fastfood_calories %>%
