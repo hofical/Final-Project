@@ -19,14 +19,12 @@ library(car)
 
 # Analyzing Fast-food nutrients
 
-
-##
 The data seems to be in a fine format. The "salad" column does not seem to provide any information so it is better to drop it. Another notable shortcoming of the dataset is that it does not include the weight of the meals which would allow us for a better analysis. Keeping that in mind the main question is: if you are hungry and you really want to go to a fast food restaurant, which one should you choose based on its overall nutrient values?
 To allow a better understanding it is better to change the raw values into percentage values. We use the FDA recommendations for a 2000 calorie diet to do that. (https://www.fda.gov/media/135301/download) It is clear from the source of original dataset (https://fastfoodnutrition.org/mcdonalds/artisan-grilled-chicken-sandwich) that it uses the same measurements (g,mg, etc.) as the FDA recommendations. Vitamins only have to be converted by decimals as they were in percent measurement from the start. 
 
-```{r, message = FALSE, include= TRUE }
+```{r, message = FALSE, include = FALSE}
 
-fastfood_calories <- read_csv("~/R/Tryagain/data/fastfood_calories.csv")
+  fastfood_calories <- read_csv("fastfood_calories.csv")
 str(fastfood_calories)
 fastfood_calories <- fastfood_calories %>%
   select(1:17) %>%
@@ -103,9 +101,6 @@ To explore the low end of this scale, we need a (somewhat arbitrary) cut-off poi
 For the high end the points the limits are less arbitrary. I'm interested in the items that reach 100% in at least one of the categories, so it will be enough for a point to be larger than 100% on one of the scales.
 The rest of the distribution is the Normal category.
 
-It is clear that Low category food contains much less calorie than High Category food but the scatterplot also makes it clear that most of the Low salt and fat food are also low in vitamins and fiber while the high category food are higher in both of those. 
-There are exceptions though, some red dots are quite low on both axis while some green go above average.
-Again, portion size is missing which might be an explanation for this phenomenon.
 
 
 
@@ -126,6 +121,13 @@ ggplot(fast_food_percent, aes(x = restaurant)) + geom_bar(aes(fill=healthy)) + g
 
  
 ```
+
+
+It is clear that Low category food contains much less calorie than High Category food but the scatterplot also makes it clear that most of the Low salt and fat food are also low in vitamins and fiber while the high category food are higher in both of those. 
+There are exceptions though, some red dots are quite low on both axis while some green go above average.
+Again, portion size is missing which might be an explanation for this phenomenon.
+
+
 ## Searching for healthy food
 Unhealthy food is already listed, now it is time to search for healthy food that have high vitamins and high fibre but low fat and low sodium. Also it is time to add sugar to the unhealthy spectrum and see what are the items that are low on that as well.
 
